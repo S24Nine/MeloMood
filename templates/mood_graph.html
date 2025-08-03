@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Analytics - MeloMood</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="graph-container">
+        <div class="graph-card">
+                <div class="graph-header">
+                    <h1 class="graph-title">Your Mood Journey</h1>
+                    <a href="{{ url_for('chat') }}" class="back-btn">← Back to Chat</a>
+                </div>
+                
+                <div class="time-filters">
+                    <button class="filter-btn" data-filter="weekly">Weekly</button>
+                    <button class="filter-btn" data-filter="monthly">Monthly</button>
+                    <button class="filter-btn" data-filter="yearly">All Time</button>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="moodChart"></canvas>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 15px;">
+                        Track your emotional patterns over time and discover insights about your mood trends.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                        <a href="{{ url_for('welcome') }}" class="btn btn-outline-primary" style="width: 180px; padding: 8px 16px; font-size: 0.9rem;">Home</a>
+                        <a href="{{ url_for('chat') }}" class="btn btn-primary" style="width: 180px; padding: 8px 16px; font-size: 0.9rem;">Take New Assessment</a>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

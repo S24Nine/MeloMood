@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - MeloMood</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-page">
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-title">MeloMood Assistant</div>
+                <div>
+                    <a href="{{ url_for('mood_graph') }}" class="mood-graph-btn">View Mood Graph</a>
+                    <form method="post" action="{{ url_for('logout') }}" style="display: inline;">
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome message -->
+                <div class="message bot">
+                    <div class="message-bubble">
+                        Hi there! I'm here to help you discover how you're feeling today and find the perfect soundtrack for your mood. Let's start with a few questions...
+                    </div>
+                </div>
+                
+                <!-- Display all previous Q&A pairs first -->
+                {% for q_id, answer in session.get('answers', {}).items() %}
+                    {% for q in questions %}
+                        {% if q.id == q_id %}
+                            <div class="message bot">
+                                <div class="message-bubble">{{ q.text }}</div>
+                            </div>
+                            <div class="message user">
+                                <div class="message-bubble">{{ answer }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                
+                {% if session.get('current_question', 0) < questions|length %}
+                    {% set current_q = session.get('current_question', 0) %}
+                    {% set question = questions[current_q] %}
+                    
+                    <!-- Display current question at the bottom -->
+                    <div class="message bot">
+                        <div class="message-bubble">
+                            {{ question.text }}
+                            <div class="message-options">
+                                {% for option in question.options %}
+                                    <form method="post" action="{{ url_for('next_question') }}" style="display: inline;">
+                                        <input type="hidden" name="answer" value="{{ option }}">
+                                        <button type="submit" class="option-btn" onclick="autoScroll()">{{ option }}</button>
+                                    </form>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <!-- All questions completed - show results -->
+                    {% if session.get('detected_mood') %}
+                        <div class="message bot">
+                            <div class="message-bubble">
+                                <div class="mood-result">
+                                    <h3 class="mood-title">
+                                        Hmm... you might be feeling <strong>{{ session.detected_mood }}</strong> today.
+                                    </h3>
+                                    
+                                    <div>
+                                        <img src="{{ session.meme_image }}" alt="{{ session.detected_mood }} meme" class="meme-image" onerror="this.style.display='none';">
+                                    </div>
+                                    
+                                    <div class="playlist-recommendation">
+                                        <p><strong>Here's a playlist that matches your vibe:</strong></p>
+                                        <a href="{{ session.playlist.link }}" target="_blank" class="playlist-link">
+                                            Listen on Spotify
+                                        </a>
+                                    </div>
+                                    
+                                    <div style="margin-top: 15px;">
+                                        <small class="text-muted" style="font-size: 0.8rem;">
+                                            Mood Score: {{ session.final_score }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                                        <a href="{{ url_for('chat') }}" class="btn btn-secondary" onclick="resetChat()" style="width: 180px; padding: 8px 16px; font-size: 0.9rem;">Take Again</a>
+                                        <a href="{{ url_for('mood_graph') }}" class="btn btn-primary" style="width: 180px; padding: 8px 16px; font-size: 0.9rem;">View Mood History</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function resetChat() {
+            // Clear session data by making a request to restart
+            fetch('/chat', {method: 'POST'})
+                .then(() => window.location.reload());
+        }
+        
+        function autoScroll() {
+            // Add a slight delay to ensure form submission completes
+            setTimeout(() => {
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+        
+        // Auto-scroll to bottom on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add click handlers to all option buttons for auto-scroll
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', autoScroll);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
